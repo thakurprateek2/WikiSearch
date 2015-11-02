@@ -7,8 +7,23 @@
 
     <dimen name="no_content_padding">15dp</dimen>
 
-    <dimen name="image_thumbnail_width">100px</dimen>
+    <dimen name="image_thumbnail_width">60dp</dimen>
 
     <integer name="number_of_colums_in_grid" >2</integer>
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="filter_edit_text_padding">15dp</dimen>
+
+    <dimen name="pic_element_margin">10dp</dimen>
+
+    <dimen name="pic_element_padding">10dp</dimen>
+
+    <dimen name="pic_card_corner">1dp</dimen>
+
+    <dimen name="pic_card_elevation">2dp</dimen>
+
+
+
+
 
 </resources>

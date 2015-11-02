@@ -8,17 +8,11 @@ import org.json.JSONObject;
  */
 public class Page {
 
-    public static final String JSON_FIELD_PAGE_ID = "pageid";
-    public static final String JSON_FIELD_TITLE = "title";
-    public static final String JSON_FIELD_THUMBNAIL_SOURCE = "source";
-    public static final String JSON_FIELD_THUMBNAIL = "thumbnail";
-
-
     private int pageid;
 
     private String title;
 
-    private String thumbnailSource;
+    private Thumbnail thumbnail;
 
     public int getPageid() {
         return pageid;
@@ -36,36 +30,12 @@ public class Page {
         this.title = title;
     }
 
-    public String getThumbnailSource() {
-        return thumbnailSource;
+    public Thumbnail getThumbnail() {
+        return thumbnail;
     }
 
-    public void setThumbnailSource(String thumbnailSource) {
-        this.thumbnailSource = thumbnailSource;
+    public void setThumbnail(Thumbnail thumbnail) {
+        this.thumbnail = thumbnail;
     }
-
-
-    /**
-     * Takes in a JSON object and returns usable page that will be used to build list on client side
-     * @param jsonObject JSON object conatining the page
-     * @return a page object
-     * @throws JSONException
-     */
-    public static final Page getPageFromJSon(JSONObject jsonObject) throws JSONException {
-
-        Page page = new Page();
-
-        page.setPageid(jsonObject.getInt(JSON_FIELD_PAGE_ID));
-
-        page.setTitle(jsonObject.getString(JSON_FIELD_TITLE));
-
-        if(jsonObject.has(JSON_FIELD_THUMBNAIL)) {
-            page.setThumbnailSource(jsonObject.getJSONObject(JSON_FIELD_THUMBNAIL)
-                    .getString(JSON_FIELD_THUMBNAIL_SOURCE));
-        }
-
-        return page;
-    }
-
 }
 

@@ -69,8 +69,9 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.View
     public void onBindViewHolder(ViewHolder holder, int position) {
         Page currentPage = pages.get(position);
         holder.tvImageTitle.setText(currentPage.getTitle());
+
         Glide.with(getContext())
-                .load(currentPage.getThumbnailSource())
+                .load(currentPage.getThumbnail() != null ? currentPage.getThumbnail().getSource() : null)
                 .placeholder(R.drawable.file_picture)
                 .crossFade()
                 .into(holder.ivIamge);
@@ -94,42 +95,4 @@ public class ImageListAdapter extends RecyclerView.Adapter<ImageListAdapter.View
         notifyItemRangeChanged(position, pages.size());
     }
 
-
-    /**
-     * populates list from JSON Object containing only pages
-     * @param pagesContainer JSON Object containing pages or null if search returned 0 elements
-     */
-    public void refreshAdapter(JSONObject pagesContainer){
-
-        int positionTracker = 0;
-
-        //If result has pages, replace each elemnt with existing element one by one. Need to do that so that user can see animation
-        if(pagesContainer != null) {
-            Iterator<String> iter = pagesContainer.keys();
-
-            while (iter.hasNext()) {
-                String key = iter.next();
-                try {
-                    Log.d("TAG", "KEY is " + key);
-                    Page page = Page.getPageFromJSon(pagesContainer.getJSONObject(key));
-                    if (pages.size() > positionTracker) {
-                        removeAt(positionTracker);
-                    }
-
-                    addAt(positionTracker, page);
-
-                    positionTracker++;
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        //if there aren't any pages or some pages are left to be replaced then remove those old pages
-        while(positionTracker < pages.size()){
-            removeAt(positionTracker);
-        }
-
-    }
 }
