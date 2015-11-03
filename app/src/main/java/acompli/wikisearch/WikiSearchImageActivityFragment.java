@@ -1,6 +1,7 @@
 package acompli.wikisearch;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.jakewharton.rxbinding.widget.RxTextView;
@@ -27,6 +29,7 @@ import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 import rx.Observable;
 import rx.Observer;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -85,10 +88,9 @@ public class WikiSearchImageActivityFragment extends Fragment {
         return view;
     }
 
-
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         progressWheel.stopSpinning();
 
@@ -105,7 +107,6 @@ public class WikiSearchImageActivityFragment extends Fragment {
                 .debounce(400, TimeUnit.MILLISECONDS)// default Scheduler is Computation
                 .observeOn(AndroidSchedulers.mainThread())//
                 .subscribe(_getSearchObserver());
-
     }
 
 
@@ -163,49 +164,70 @@ public class WikiSearchImageActivityFragment extends Fragment {
 
                 progressWheel.spin();
 
-                //Registers a subscription
-                compositeSubscription.add(api.items("query", "pageimages", "json", "thumbnail", "100", "50", "prefixsearch", "50", searchQuery)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .flatMap(new Func1<PageResponse, Observable<Page>>() {
-                            @Override
-                            public Observable<Page> call(PageResponse urls) {
-                                return Observable.from(urls.getQuery().getPages().values());
-                            }
-                        })
-                        .subscribe(new Observer<Page>() {
-                            @Override
-                            public void onCompleted() {
+                //Adds a subscription
+                compositeSubscription.add(createSubscriptionForQuery(searchQuery));
 
-                                Log.d("TAG", "onCompleted CALLED");
-                                if(progressWheel.isSpinning()) {
-                                    progressWheel.stopSpinning();
-                                }
 
-                            }
 
-                            @Override
-                            public void onError(Throwable e) {
-
-                                e.printStackTrace();
-
-                                if(progressWheel.isSpinning()) {
-                                    progressWheel.stopSpinning();
-                                }
-
-                            }
-
-                            @Override
-                            public void onNext(Page response) {
-
-                                //This will only be called once a image item is ready
-
-                                imageListAdapter.addAt(imageListAdapter.getPages().size(), response);
-
-                            }
-                        }));
 
             }
         };
+    }
+
+    public Subscription createSubscriptionForQuery(String searchQuery){
+        //Logic for caching the request so that it doesnt fetch again on configuration change
+        Observable<PageResponse> observable = RequestCache.getInstance().observableForQuery(searchQuery);
+
+        if(observable == null) {
+
+            observable = api.items("query", "pageimages", "json", "thumbnail", "100", "50", "prefixsearch", "50", searchQuery).cache();
+
+            RequestCache.getInstance().storeRequestInCache(observable, searchQuery);
+
+        }
+
+        Subscription subscription = observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Func1<PageResponse, Observable<Page>>() {
+                    @Override
+                    public Observable<Page> call(PageResponse urls) {
+                        return Observable.from(urls.getQuery().getPages().values());
+                    }
+                })
+                .subscribe(new Observer<Page>() {
+                    @Override
+                    public void onCompleted() {
+
+                        Log.d("TAG", "onCompleted CALLED");
+                        if (progressWheel.isSpinning()) {
+                            progressWheel.stopSpinning();
+                        }
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                        e.printStackTrace();
+
+                        if (progressWheel.isSpinning()) {
+                            progressWheel.stopSpinning();
+                        }
+
+                    }
+
+                    @Override
+                    public void onNext(Page response) {
+
+                        //This will only be called once a image item is ready
+
+                        imageListAdapter.addAt(imageListAdapter.getPages().size(), response);
+
+                    }
+                });
+
+        return subscription;
+
     }
 }

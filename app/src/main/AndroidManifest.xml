@@ -15,7 +15,8 @@
         <activity
             android:name=".WikiSearchImageActivity"
             android:label="@string/title_activity_wiki_search_image"
-            android:theme="@style/ABMaterialTheme" >
+            android:theme="@style/ABMaterialTheme"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
